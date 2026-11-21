@@ -2,7 +2,9 @@
 
 # dockge-mod
 
-A drop-in replacement for [Dockge](https://github.com/louislam/dockge) by Louis Lam, with a reworked interface and new features. It uses the same data directory, database, stacks directory, and environment variables, so you can switch an existing Dockge installation to dockge-mod and back without a migration.
+A drop-in replacement for [Dockge](https://github.com/louislam/dockge) by Louis Lam. It uses the same data directory, database, stacks directory, and environment variables, so you can switch an existing Dockge installation to dockge-mod and back without a migration.
+
+This is a maintenance fork of `ethanpil/dockge-mod`. Credit for the reworked interface and the main features below goes to `ethanpil`, who built them on top of Dockge. I forked the project nearly two months after the `1.5.0-mod-2026-10-01` release to update dependencies and patch more recent CVEs. [Original repository](https://github.com/ethanpil/dockge-mod) · [Upstream release](https://github.com/ethanpil/dockge-mod/releases/tag/1.5.0-mod-2026-10-01)
 
 Dockge manages Docker Compose stacks from a web interface. Your compose files stay on disk, and you can keep using `docker compose` from the command line.
 
