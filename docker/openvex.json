@@ -1,6 +1,6 @@
 {
   "@context": "https://openvex.dev/ns/v0.2.0",
-  "@id": "https://github.com/ethanpil/dockge-mod/blob/master/docker/openvex.json",
+  "@id": "https://github.com/drtaru/dockge-mod/blob/master/docker/openvex.json",
   "author": "dockge-mod",
   "timestamp": "2026-11-21T00:00:00Z",
   "version": 1,

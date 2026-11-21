@@ -7,7 +7,7 @@
             <div class="frontend-version">{{ $t("Frontend Version") }}: {{ $root.frontendVersion }}</div>
 
             <div class="mt-3">
-                <a href="https://github.com/ethanpil/dockge-mod" target="_blank" rel="noopener">github.com/ethanpil/dockge-mod</a>
+                <a href="https://github.com/drtaru/dockge-mod" target="_blank" rel="noopener">github.com/drtaru/dockge-mod</a>
             </div>
             <i18n-t keypath="aboutCompat" tag="div" class="compat-note mt-1">
                 <template #dockge>

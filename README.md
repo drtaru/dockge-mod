@@ -30,7 +30,7 @@ Everything Dockge does, plus:
 
 Requirements: Docker 20 or later on Linux, on amd64, arm64, or armv7. Podman with `podman-docker` works for the Dockge features; the new features (event watcher, image checks, Resources page) are tested on Docker only.
 
-The image is [`ethanpil/dockge-mod`](https://hub.docker.com/r/ethanpil/dockge-mod) on Docker Hub. Each release has two tags: `latest` and a fixed version with the build date, such as `1.5.0-mod-2026-10-01` (a second release on the same day adds `-2`). The fixed tags sort by release date. **Settings** > **About** shows the version you run.
+The image is [`drtaru/dockge-mod`](https://hub.docker.com/r/drtaru/dockge-mod) on Docker Hub. Each release has two tags: `latest` and a fixed version with the build date, such as `1.5.0-mod-2026-11-21` (a second release on the same day adds `-2`). The fixed tags sort by release date. **Settings** > **About** shows the version you run.
 
 1. Create a directory for your stacks and one for dockge-mod:
 
@@ -43,7 +43,7 @@ The image is [`ethanpil/dockge-mod`](https://hub.docker.com/r/ethanpil/dockge-mo
    ```yaml
    services:
      dockge-mod:
-       image: ethanpil/dockge-mod:latest
+       image: drtaru/dockge-mod:latest
        restart: unless-stopped
        ports:
          - 5001:5001
@@ -70,7 +70,7 @@ The image is [`ethanpil/dockge-mod`](https://hub.docker.com/r/ethanpil/dockge-mo
 
 1. Stop Dockge: `docker compose down` in its directory.
 2. Back up its `data` directory.
-3. Change the `image` line to `ethanpil/dockge-mod:latest`.
+3. Change the `image` line to `drtaru/dockge-mod:latest`.
 4. `docker compose up -d`.
 
 Your users, settings, agents, and stacks carry over. To go back, change the `image` line again. See [Compatibility](#compatibility) for what changes.
@@ -84,7 +84,7 @@ cd /opt/dockge-mod && docker compose pull && docker compose up -d
 ### Build the image yourself
 
 ```bash
-git clone https://github.com/ethanpil/dockge-mod.git
+git clone https://github.com/drtaru/dockge-mod.git
 cd dockge-mod && docker build --target release -f docker/Dockerfile -t dockge-mod:local .
 ```
 
@@ -241,7 +241,7 @@ Report vulnerabilities as described in [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
-Bug reports and feature requests are welcome in the [issues](https://github.com/ethanpil/dockge-mod/issues). Report problems here first, even if they may come from Dockge; they will be passed upstream when that is the case. This is a personal fork, so pull requests may not be accepted.
+Bug reports and feature requests are welcome in the [issues](https://github.com/drtaru/dockge-mod/issues). Report problems here first, even if they may come from Dockge; they will be passed upstream when that is the case. This is a personal fork, so pull requests may not be accepted.
 
 ## Translations
 

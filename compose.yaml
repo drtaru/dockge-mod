@@ -1,6 +1,6 @@
 services:
   dockge-mod:
-    image: ethanpil/dockge-mod:latest
+    image: drtaru/dockge-mod:latest
     restart: unless-stopped
     ports:
       # Host port : container port

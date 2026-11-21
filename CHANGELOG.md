@@ -136,24 +136,24 @@ First release. Differences from Dockge:
 
 - The check for a new Dockge version on GitHub.
 
-[Unreleased]: https://github.com/ethanpil/dockge-mod/compare/1.5.0-mod-2026-09-30-4...HEAD
-[1.5.0-mod-2026-09-30-4]: https://github.com/ethanpil/dockge-mod/releases/tag/1.5.0-mod-2026-09-30-4
-[1.5.0-mod-2026-09-30-3]: https://github.com/ethanpil/dockge-mod/releases/tag/1.5.0-mod-2026-09-30-3
-[1.5.0-mod-2026-09-30-2]: https://github.com/ethanpil/dockge-mod/releases/tag/1.5.0-mod-2026-09-30-2
-[1.5.0-mod-2026-09-30]: https://github.com/ethanpil/dockge-mod/releases/tag/1.5.0-mod-2026-09-30
-[1.5.0-mod-38b177a]: https://github.com/ethanpil/dockge-mod/releases/tag/1.5.0-mod-38b177a
-[1.5.0-mod-c056412]: https://github.com/ethanpil/dockge-mod/releases/tag/1.5.0-mod-c056412
-[9a9f155]: https://github.com/ethanpil/dockge-mod/commit/9a9f155
-[5f93947]: https://github.com/ethanpil/dockge-mod/commit/5f93947
-[45e0a42]: https://github.com/ethanpil/dockge-mod/commit/45e0a42
-[b10d053]: https://github.com/ethanpil/dockge-mod/commit/b10d053
-[e67d554]: https://github.com/ethanpil/dockge-mod/commit/e67d554
-[54725af]: https://github.com/ethanpil/dockge-mod/commit/54725af
-[4c4e9e5]: https://github.com/ethanpil/dockge-mod/commit/4c4e9e5
-[3a8a440]: https://github.com/ethanpil/dockge-mod/commit/3a8a440
-[51973af]: https://github.com/ethanpil/dockge-mod/commit/51973af
-[21ff72a]: https://github.com/ethanpil/dockge-mod/commit/21ff72a
-[8707181]: https://github.com/ethanpil/dockge-mod/commit/8707181
-[98cb6c2]: https://github.com/ethanpil/dockge-mod/commit/98cb6c2
-[bc22502]: https://github.com/ethanpil/dockge-mod/commit/bc22502
-[d37663b]: https://github.com/ethanpil/dockge-mod/commit/d37663b
+[Unreleased]: https://github.com/drtaru/dockge-mod/compare/5a8d20123263f86f4c2f7be5d52c0fec862e3327...master
+[1.5.0-mod-2026-09-30-4]: https://github.com/drtaru/dockge-mod/commit/5a8d20123263f86f4c2f7be5d52c0fec862e3327
+[1.5.0-mod-2026-09-30-3]: https://github.com/drtaru/dockge-mod/commit/b42c9cfaa283d0d42e0f7dc7457f2c9066b481bb
+[1.5.0-mod-2026-09-30-2]: https://github.com/drtaru/dockge-mod/commit/97b891f9ac6ddbb1805778fd65266b868cd61a9f
+[1.5.0-mod-2026-09-30]: https://github.com/drtaru/dockge-mod/commit/e8dd3ff6aa61f3fc3c4270eb5db19d1bf8cbfaec
+[1.5.0-mod-38b177a]: https://github.com/drtaru/dockge-mod/commit/38b177ab7addf3f52c879d4e2c12fd49acb1bb6f
+[1.5.0-mod-c056412]: https://github.com/drtaru/dockge-mod/commit/c05641250d5fac345ed7f1be1a417767bad4acd6
+[9a9f155]: https://github.com/drtaru/dockge-mod/commit/9a9f155
+[5f93947]: https://github.com/drtaru/dockge-mod/commit/5f93947
+[45e0a42]: https://github.com/drtaru/dockge-mod/commit/45e0a42
+[b10d053]: https://github.com/drtaru/dockge-mod/commit/b10d053
+[e67d554]: https://github.com/drtaru/dockge-mod/commit/e67d554
+[54725af]: https://github.com/drtaru/dockge-mod/commit/54725af
+[4c4e9e5]: https://github.com/drtaru/dockge-mod/commit/4c4e9e5
+[3a8a440]: https://github.com/drtaru/dockge-mod/commit/3a8a440
+[51973af]: https://github.com/drtaru/dockge-mod/commit/51973af
+[21ff72a]: https://github.com/drtaru/dockge-mod/commit/21ff72a
+[8707181]: https://github.com/drtaru/dockge-mod/commit/8707181
+[98cb6c2]: https://github.com/drtaru/dockge-mod/commit/98cb6c2
+[bc22502]: https://github.com/drtaru/dockge-mod/commit/bc22502
+[d37663b]: https://github.com/drtaru/dockge-mod/commit/d37663b
