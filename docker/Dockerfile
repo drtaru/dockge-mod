@@ -2,12 +2,11 @@
 # Docker CLI
 # The docker CLI and the compose and buildx plugins, as static binaries
 # from Docker's official image. This avoids Docker's apt repository and
-# the curl, gnupg, and unzip packages that it needed. A rebuild picks up
-# the latest 29.x release.
+# the curl, gnupg, and unzip packages that it needed.
 #
 # buildx: `docker compose build` for stacks with a build section.
 ############################################
-FROM docker:29-cli AS docker_cli
+FROM docker:29.10.0-cli@sha256:34507eb5069d8be82c95dd3b6987d4250fd5fee49b82e2509b7d7a7030740d6d AS docker_cli
 
 ############################################
 # Base
@@ -16,15 +15,15 @@ FROM docker:29-cli AS docker_cli
 #
 # git: stacks that are git checkouts (branch badge, Pull & Redeploy).
 ############################################
-# Node.js publishes Debian 13 images for amd64 and arm64 only. armv7 stays
-# on Debian 12, with its security updates applied by the upgrade below.
+# Node.js publishes Debian 13 images for amd64 and arm64. armv7 uses
+# Debian 12, with its security updates applied by the upgrade below.
 # BuildKit builds only the stage of the target platform.
-FROM node:22-trixie-slim AS node-amd64
-FROM node:22-trixie-slim AS node-arm64
-FROM node:22-bookworm-slim AS node-arm
+FROM node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450afcdbe70c1532db042b64 AS node-amd64
+FROM node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450afcdbe70c1532db042b64 AS node-arm64
+FROM node:22.23.5-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS node-arm
 FROM node-${TARGETARCH} AS base
 RUN apt-get update \
-    && apt-get upgrade --yes \
+    && apt-get upgrade --yes --with-new-pkgs \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
         git \
@@ -38,7 +37,7 @@ COPY --from=docker_cli /usr/local/libexec/docker/cli-plugins /usr/local/libexec/
 # Go compiles for the target architecture on the build platform, so
 # this stage does not run under emulation.
 ############################################
-FROM --platform=$BUILDPLATFORM golang:1.27-trixie AS build_healthcheck
+FROM --platform=$BUILDPLATFORM golang:1.27.4-trixie@sha256:f18c3d73a184fb0582828510722e723b63a93f7188d11dd223d9be6f6880e65d AS build_healthcheck
 WORKDIR /app
 ARG TARGETOS
 ARG TARGETARCH
@@ -77,7 +76,7 @@ RUN if [ -n "$APP_VERSION" ]; then npm pkg set version="$APP_VERSION"; fi
 # multi-arch build must not recompile it per target under QEMU. This stage only
 # needs Node.js, thus it starts from the plain node image.
 ############################################
-FROM --platform=$BUILDPLATFORM node:22-trixie-slim AS frontend_build
+FROM --platform=$BUILDPLATFORM node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450afcdbe70c1532db042b64 AS frontend_build
 WORKDIR /app
 ARG APP_VERSION
 COPY --chown=node:node  ./package.json ./package.json

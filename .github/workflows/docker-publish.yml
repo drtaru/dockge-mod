@@ -82,6 +82,8 @@ jobs:
             org.opencontainers.image.source=https://github.com/ethanpil/dockge-mod
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+          # Run APT even when the pinned base image is unchanged.
+          no-cache-filters: base
           cache-from: type=gha
           # A cache error must not fail a build that is already pushed
           cache-to: type=gha,mode=max,ignore-error=true

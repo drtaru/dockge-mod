@@ -73,6 +73,8 @@ jobs:
           push: false
           load: true
           tags: dockge-mod:ci
+          # Run APT even when the pinned base image is unchanged.
+          no-cache-filters: base
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
 

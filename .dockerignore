@@ -9,6 +9,7 @@ stacks
 tmp
 /private
 .git
+graphify-out
 .github
 test
 docker
