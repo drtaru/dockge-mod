@@ -15,6 +15,9 @@ permissions:
 jobs:
   description:
     runs-on: sengi-basic-2-ubuntu-2404
+    concurrency:
+      group: sengi-2-vcpu
+      queue: max
     timeout-minutes: 5
     env:
       SYNC_DOCKER_HUB_DESCRIPTION: ${{ secrets.DOCKER_HUB_DESCRIPTION_KEY != '' && 'yes' || 'no' }}

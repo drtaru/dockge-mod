@@ -9,6 +9,7 @@ permissions:
 # Two runs that push the same tag must not race each other
 concurrency:
   group: publish-${{ github.ref }}
+  queue: max
   cancel-in-progress: false
 
 jobs:
@@ -19,6 +20,9 @@ jobs:
   publish:
     needs: ci
     runs-on: sengi-basic-8-ubuntu-2404
+    concurrency:
+      group: sengi-8-vcpu
+      queue: max
     timeout-minutes: 120
     permissions:
       contents: read
