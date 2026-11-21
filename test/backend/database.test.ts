@@ -44,6 +44,10 @@ describe("Database", () => {
         expect(rows.map((row : { name : string }) => row.name)).toEqual(UPSTREAM_MIGRATIONS);
     });
 
+    it("uses the SQLite engine bundled with Node.js", async () => {
+        expect(await R.getCell("SELECT sqlite_version()")).toBe(process.versions.sqlite);
+    });
+
     it("puts the mod migrations in their own ledger", async () => {
         const rows = await R.knex(Database.knexModMigrationsTable).select("name");
         expect(rows.length).toBeGreaterThan(0);

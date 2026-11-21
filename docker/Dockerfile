@@ -1,7 +1,7 @@
 ############################################
 # Docker CLI
-# The docker CLI and the buildx plugin, as static binaries
-# from Docker's official image. This avoids Docker's apt repository and
+# The Docker CLI binary from Docker's official image.
+# This avoids Docker's apt repository and
 # the curl, gnupg, and unzip packages that it needed.
 #
 # buildx: `docker compose build` for stacks with a build section.
@@ -10,7 +10,7 @@ FROM docker:29.10.0-cli@sha256:34507eb5069d8be82c95dd3b6987d4250fd5fee49b82e2509
 
 ############################################
 # Base
-# Node.js on Debian 13, with git and dumb-init. The upgrade applies the
+# Node.js on Debian 13, with Git's runtime libraries and dumb-init. The upgrade applies the
 # Debian security updates that are newer than the Node.js image.
 #
 # git: stacks that are git checkouts (branch badge, Pull & Redeploy).
@@ -26,11 +26,27 @@ RUN apt-get update \
     && apt-get upgrade --yes --with-new-pkgs \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
-        git \
         dumb-init \
+        libcurl3-gnutls \
+        liberror-perl \
+        libexpat1 \
+        libpcre2-8-0 \
+        perl \
+        zlib1g \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=docker_cli /usr/local/bin/docker /usr/local/bin/docker
-COPY --from=docker_cli /usr/local/libexec/docker/cli-plugins/docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
+
+# Build upstream Git until Debian ships the fixes in Git 2.56.1.
+FROM base AS build_git
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+        gcc gettext libc6-dev libcurl4-gnutls-dev libexpat1-dev libpcre2-dev make xz-utils zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+ADD --checksum=sha256:f0b0bf89264b9bd2e1c640363e7529643989da76281600473c50745cd34a607f https://www.kernel.org/pub/software/scm/git/git-2.56.1.tar.xz /tmp/git.tar.xz
+WORKDIR /src
+RUN tar -xJf /tmp/git.tar.xz --strip-components=1 \
+    && make -j"$(nproc)" prefix=/usr gitexecdir=/usr/lib/git-core DESTDIR=/out INSTALL_STRIP=-s \
+        NO_RUST=1 NO_TCLTK=1 NO_OPENSSL=1 USE_LIBPCRE2=1 install
 
 ############################################
 # Healthcheck Binary
@@ -38,6 +54,7 @@ COPY --from=docker_cli /usr/local/libexec/docker/cli-plugins/docker-buildx /usr/
 # this stage does not run under emulation.
 ############################################
 FROM --platform=$BUILDPLATFORM golang:1.27.4-trixie@sha256:f18c3d73a184fb0582828510722e723b63a93f7188d11dd223d9be6f6880e65d AS go_builder
+ENV GOTOOLCHAIN=local
 FROM go_builder AS build_healthcheck
 WORKDIR /app
 ARG TARGETOS
@@ -54,7 +71,6 @@ WORKDIR /src
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
-ENV GOTOOLCHAIN=local
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     compose_version=v5.7.1 \
     && go mod download "github.com/docker/compose/v5@$compose_version" \
@@ -63,6 +79,21 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
     && go get github.com/klauspost/compress@v1.20.2 golang.org/x/net@v0.62.0 golang.org/x/crypto@v0.59.0 \
     && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
         go build -mod=mod -trimpath -ldflags="-s -w -X github.com/docker/compose/v5/internal.Version=$compose_version" -o /docker-compose ./cmd
+
+# Use the patched archive dependency until Docker's Buildx release includes it.
+FROM go_builder AS build_buildx
+WORKDIR /src
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+    buildx_version=v0.39.1 \
+    && go mod download "github.com/docker/buildx@$buildx_version" \
+    && cp -R "/go/pkg/mod/github.com/docker/buildx@$buildx_version/." . \
+    && chmod u+w go.mod go.sum \
+    && go get github.com/moby/go-archive@v0.3.3 golang.org/x/crypto@v0.59.0 \
+    && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
+        go build -mod=mod -trimpath -ldflags="-s -w -X github.com/docker/buildx/version.Version=$buildx_version" -o /docker-buildx ./cmd/buildx
 
 ############################################
 # Build
@@ -73,16 +104,7 @@ ARG APP_VERSION
 COPY --chown=node:node  ./package.json ./package.json
 COPY --chown=node:node  ./package-lock.json ./package-lock.json
 RUN npm ci --omit=dev
-# The sqlite3 driver uses node-gyp, tar, and their helpers only to install
-# itself. At runtime its loader calls node-pre-gyp's find(), which does not
-# load them, so they leave the image. The require checks that the native
-# modules still load.
-RUN find ./node_modules -depth -type d \( \
-        -path "*/node_modules/node-gyp" -o -path "*/node_modules/tar" \
-        -o -path "*/node_modules/cacache" -o -path "*/node_modules/make-fetch-happen" \
-        -o -path "*/node_modules/http-proxy-agent" -o -path "*/node_modules/@tootallnate/once" \
-    \) -exec rm -rf {} + \
-    && node -e "require('@louislam/sqlite3'); require('@homebridge/node-pty-prebuilt-multiarch')"
+RUN node -e "require('node:sqlite'); require('@homebridge/node-pty-prebuilt-multiarch')"
 # The release stage has no npm, so the version is set here
 RUN if [ -n "$APP_VERSION" ]; then npm pkg set version="$APP_VERSION"; fi
 
@@ -118,6 +140,8 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack 
         /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 COPY --chown=node:node --from=build_healthcheck /app/extra/healthcheck /app/extra/healthcheck
 COPY --from=build_compose /docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
+COPY --from=build_buildx /docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
+COPY --from=build_git /out/usr/ /usr/
 COPY --from=build /app/node_modules /app/node_modules
 # Only what the server needs at runtime. package.json comes from the build
 # stage, which holds the version of the image.

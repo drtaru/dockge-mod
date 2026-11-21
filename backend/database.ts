@@ -4,12 +4,44 @@ import { DockgeServer } from "./dockge-server";
 import fs from "fs";
 import path from "path";
 import knex from "knex";
+import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import semver from "semver";
 
 // @ts-ignore
-import Dialect from "knex/lib/dialects/sqlite3/index.js";
+import BetterSQLiteClient from "knex/lib/dialects/better-sqlite3/index.js";
 
-import sqlite from "@louislam/sqlite3";
 import { sleep } from "../common/util-common";
+
+class NodeSQLiteClient extends BetterSQLiteClient {
+    declare connectionSettings : { filename : string };
+    declare _formatBindings : (bindings? : unknown[]) => SQLInputValue[];
+
+    _driver() {
+        return DatabaseSync;
+    }
+
+    async acquireRawConnection() {
+        return new DatabaseSync(this.connectionSettings.filename, { timeout: 1000 });
+    }
+
+    async _query(connection : DatabaseSync, query : { sql : string; bindings? : unknown[] }) {
+        const statement = connection.prepare(query.sql);
+        const bindings = this._formatBindings(query.bindings);
+
+        if (statement.columns().length > 0) {
+            return Object.assign(query, { response: statement.all(...bindings).map((row) => ({ ...row })) });
+        }
+
+        const { lastInsertRowid, changes } = statement.run(...bindings);
+        return Object.assign(query, {
+            response: [],
+            context: {
+                lastID: lastInsertRowid,
+                changes,
+            },
+        });
+    }
+}
 
 interface DBConfig {
     type?: "sqlite" | "mysql";
@@ -117,11 +149,13 @@ export class Database {
         log.info("db", `Database Type: ${dbConfig.type}`);
 
         if (dbConfig.type === "sqlite") {
+            if (!process.versions.sqlite || semver.lt(process.versions.sqlite, "3.54.1")) {
+                throw new Error("Dockge requires Node.js with SQLite 3.54.1 or later");
+            }
             this.sqlitePath = path.join(this.server.config.dataDir, "dockge.db");
-            Dialect.prototype._driver = () => sqlite;
 
             config = {
-                client: Dialect,
+                client: NodeSQLiteClient,
                 connection: {
                     filename: Database.sqlitePath,
                     acquireConnectionTimeout: acquireConnectionTimeout,
