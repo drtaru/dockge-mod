@@ -12,7 +12,9 @@ tmp
 graphify-out
 .github
 test
-docker
+docker/*
+!docker/apt-cache-key
+!docker/patches
 CLAUDE.md
 CHANGELOG.md
 README.md

@@ -22,7 +22,9 @@ FROM node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450
 FROM node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450afcdbe70c1532db042b64 AS node-arm64
 FROM node:22.23.5-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS node-arm
 FROM node-${TARGETARCH} AS base
-RUN apt-get update \
+# The publish workflow changes this file once per attempt to refresh APT.
+RUN --mount=type=bind,source=docker/apt-cache-key,target=/tmp/apt-cache-key \
+    apt-get update \
     && apt-get upgrade --yes --with-new-pkgs \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
@@ -61,8 +63,7 @@ RUN tar -xJf /tmp/curl.tar.xz --strip-components=1 \
 
 ADD --checksum=sha256:c624ba2998fc65df1163a49641ff3f9ab73138b11641d92c86bee0fb01b1bc7f https://github.com/libexpat/libexpat/releases/download/R_2_10_0/expat-2.10.0.tar.xz /tmp/expat.tar.xz
 # Expat 2.10.0 needs the upstream CVE-2026-124317 fix until the next release.
-ADD --checksum=sha256:56b71deecec296aba42cd80ebde30215527aec9fa5c3ea183d0a056f2bb1520e https://github.com/libexpat/libexpat/commit/bf26290d2f021111cf806753dcb87d165f53571b.patch /tmp/expat-prepare.patch
-ADD --checksum=sha256:ca8dc281de3b045d1ed1d0ac7fda819a31d8bb7bac3134391c809830d743de97 https://github.com/libexpat/libexpat/commit/3d77567612994172f9d09b46f31bb604e16fb08d.patch /tmp/expat-fix.patch
+COPY docker/patches/expat-prepare.patch docker/patches/expat-fix.patch /tmp/
 WORKDIR /src/expat
 RUN tar -xJf /tmp/expat.tar.xz --strip-components=1 \
     && patch -p2 -i /tmp/expat-prepare.patch \
