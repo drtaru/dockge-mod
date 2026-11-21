@@ -2,12 +2,10 @@ name: Docker Hub Description
 
 # Copy the README and the short description to the Docker Hub page
 on:
-  workflow_dispatch:
-  push:
-    branches: [ master ]
-    paths:
-      - README.md
-      - .github/workflows/dockerhub-description.yml
+  workflow_call:
+    secrets:
+      DOCKER_HUB_DESCRIPTION_KEY:
+        required: false
 
 permissions:
   contents: read

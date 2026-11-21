@@ -1,16 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [ master ]
-    paths-ignore:
-      - '*.md'
-  pull_request:
-    branches: [ master ]
-    paths-ignore:
-      - '*.md'
-  # The publish workflow calls this, so an image is never pushed without
-  # a passing check
   workflow_call:
 
 permissions:
@@ -55,6 +45,7 @@ jobs:
   # Build the image and start it, so a broken Dockerfile or a missing
   # runtime file fails here and not after a publish
   image:
+    needs: check
     runs-on: sengi-basic-8-ubuntu-2404
     concurrency:
       group: sengi-8-vcpu

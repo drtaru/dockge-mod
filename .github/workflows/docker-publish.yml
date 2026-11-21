@@ -96,3 +96,9 @@ jobs:
           cache-from: type=gha
           # A cache error must not fail a build that is already pushed
           cache-to: type=gha,mode=max,ignore-error=true
+
+  description:
+    needs: publish
+    uses: ./.github/workflows/dockerhub-description.yml
+    secrets:
+      DOCKER_HUB_DESCRIPTION_KEY: ${{ secrets.DOCKER_HUB_DESCRIPTION_KEY }}
