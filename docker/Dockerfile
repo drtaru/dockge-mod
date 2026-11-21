@@ -27,26 +27,56 @@ RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
         dumb-init \
-        libcurl3-gnutls \
+        libbrotli1 \
         liberror-perl \
-        libexpat1 \
+        libgnutls30 \
+        libgssapi-krb5-2 \
+        libidn2-0 \
+        libnghttp2-14 \
         libpcre2-8-0 \
+        libpsl5 \
+        libssh2-1 \
+        libzstd1 \
         perl \
         zlib1g \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=docker_cli /usr/local/bin/docker /usr/local/bin/docker
 
-# Build upstream Git until Debian ships the fixes in Git 2.56.1.
+# Build Git and its patched HTTP and WebDAV libraries on the target Debian release.
 FROM base AS build_git
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
-        gcc gettext libc6-dev libcurl4-gnutls-dev libexpat1-dev libpcre2-dev make xz-utils zlib1g-dev \
+        gcc gettext libc6-dev libbrotli-dev libgnutls28-dev libidn2-dev libkrb5-dev \
+        libnghttp2-dev libpcre2-dev libpsl-dev libssh2-1-dev libzstd-dev make patch pkg-config xz-utils zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
+ADD --checksum=sha256:8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5 https://curl.se/download/curl-8.23.0.tar.xz /tmp/curl.tar.xz
+WORKDIR /src/curl
+RUN tar -xJf /tmp/curl.tar.xz --strip-components=1 \
+    && ./configure --prefix=/usr/local --disable-static --disable-docs --disable-manual \
+        --with-gnutls --with-gssapi --with-nghttp2 --with-libidn2 --with-libpsl \
+        --with-libssh2 --with-brotli --with-zstd --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt \
+    && make -j"$(nproc)" install \
+    && ldconfig \
+    && curl-config --features | grep -qx GSS-API
+
+ADD --checksum=sha256:c624ba2998fc65df1163a49641ff3f9ab73138b11641d92c86bee0fb01b1bc7f https://github.com/libexpat/libexpat/releases/download/R_2_10_0/expat-2.10.0.tar.xz /tmp/expat.tar.xz
+# Expat 2.10.0 needs the upstream CVE-2026-124317 fix until the next release.
+ADD --checksum=sha256:56b71deecec296aba42cd80ebde30215527aec9fa5c3ea183d0a056f2bb1520e https://github.com/libexpat/libexpat/commit/bf26290d2f021111cf806753dcb87d165f53571b.patch /tmp/expat-prepare.patch
+ADD --checksum=sha256:ca8dc281de3b045d1ed1d0ac7fda819a31d8bb7bac3134391c809830d743de97 https://github.com/libexpat/libexpat/commit/3d77567612994172f9d09b46f31bb604e16fb08d.patch /tmp/expat-fix.patch
+WORKDIR /src/expat
+RUN tar -xJf /tmp/expat.tar.xz --strip-components=1 \
+    && patch -p2 -i /tmp/expat-prepare.patch \
+    && patch -p2 -i /tmp/expat-fix.patch \
+    && ./configure --prefix=/usr/local --disable-static --without-docbook --without-tests --without-examples --without-xmlwf \
+    && make -j"$(nproc)" install
+
 ADD --checksum=sha256:f0b0bf89264b9bd2e1c640363e7529643989da76281600473c50745cd34a607f https://www.kernel.org/pub/software/scm/git/git-2.56.1.tar.xz /tmp/git.tar.xz
-WORKDIR /src
+WORKDIR /src/git
 RUN tar -xJf /tmp/git.tar.xz --strip-components=1 \
     && make -j"$(nproc)" prefix=/usr gitexecdir=/usr/lib/git-core DESTDIR=/out INSTALL_STRIP=-s \
-        NO_RUST=1 NO_TCLTK=1 NO_OPENSSL=1 USE_LIBPCRE2=1 install
+        NO_RUST=1 NO_TCLTK=1 NO_OPENSSL=1 USE_LIBPCRE2=1 install \
+    && mkdir -p /out/usr/local/lib \
+    && cp -a /usr/local/lib/libcurl.so.4* /usr/local/lib/libexpat.so.1* /out/usr/local/lib/
 
 ############################################
 # Healthcheck Binary
@@ -81,6 +111,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
         go build -mod=mod -trimpath -ldflags="-s -w -X github.com/docker/compose/v5/internal.Version=$compose_version" -o /docker-compose ./cmd
 
 # Use the patched archive dependency until Docker's Buildx release includes it.
+# Check the Docker daemon exclusions in docker/openvex.json against the linked packages.
 FROM go_builder AS build_buildx
 WORKDIR /src
 ARG TARGETOS
@@ -92,8 +123,10 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
     && cp -R "/go/pkg/mod/github.com/docker/buildx@$buildx_version/." . \
     && chmod u+w go.mod go.sum \
     && go get github.com/moby/go-archive@v0.3.3 golang.org/x/crypto@v0.59.0 \
-    && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
-        go build -mod=mod -trimpath -ldflags="-s -w -X github.com/docker/buildx/version.Version=$buildx_version" -o /docker-buildx ./cmd/buildx
+    && export CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" GOARM="${TARGETVARIANT#v}" \
+    && go list -mod=mod -deps ./cmd/buildx > /tmp/buildx-packages \
+    && test "$(grep '^github.com/docker/docker/' /tmp/buildx-packages)" = github.com/docker/docker/pkg/namesgenerator \
+    && go build -mod=mod -trimpath -ldflags="-s -w -X github.com/docker/buildx/version.Version=$buildx_version" -o /docker-buildx ./cmd/buildx
 
 ############################################
 # Build
@@ -142,6 +175,14 @@ COPY --chown=node:node --from=build_healthcheck /app/extra/healthcheck /app/extr
 COPY --from=build_compose /docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
 COPY --from=build_buildx /docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
 COPY --from=build_git /out/usr/ /usr/
+COPY --from=build_git /src/curl/COPYING /usr/local/share/doc/curl/COPYING
+COPY --from=build_git /src/expat/COPYING /usr/local/share/doc/expat/COPYING
+RUN ldconfig \
+    && ldd /usr/lib/git-core/git-http-push > /tmp/git-http-libraries \
+    && grep -Fq 'libcurl.so.4 => /usr/local/lib/libcurl.so.4' /tmp/git-http-libraries \
+    && grep -Fq 'libexpat.so.1 => /usr/local/lib/libexpat.so.1' /tmp/git-http-libraries \
+    && ! grep -Fq 'not found' /tmp/git-http-libraries \
+    && rm /tmp/git-http-libraries
 COPY --from=build /app/node_modules /app/node_modules
 # Only what the server needs at runtime. package.json comes from the build
 # stage, which holds the version of the image.
