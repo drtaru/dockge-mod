@@ -1,7 +1,7 @@
 <template>
     <div class="panel">
         <div class="panel-head">
-            <span class="panel-title">{{ $tc("container", 2) }}</span>
+            <span class="panel-title">{{ $t("container", 2) }}</span>
             <span class="panel-note">{{ containerRows.length }}</span>
         </div>
 
@@ -15,7 +15,7 @@
                         <th class="c-img">{{ $t("dockerImage") }}</th>
                         <th class="c-state">{{ $t("state") }}</th>
                         <th class="c-up">{{ $t("uptime") }}</th>
-                        <th class="c-addr">{{ $t("ip") }} / {{ $tc("port", 2) }}</th>
+                        <th class="c-addr">{{ $t("ip") }} / {{ $t("port", 2) }}</th>
                         <th class="c-num">{{ $t("CPU") }}</th>
                         <th class="c-num">{{ $t("memory") }}</th>
                         <th class="c-num c-net">{{ $t("networkIO") }}</th>
@@ -112,7 +112,7 @@
                 <div class="mcard-grid">
                     <span class="k">{{ $t("uptime") }}</span><span class="mono">{{ row.uptime ?? "—" }}</span>
                     <span class="k">{{ $t("ip") }}</span><span class="mono">{{ row.ip || "—" }}</span>
-                    <span class="k">{{ $tc("port", 2) }}</span><span class="mono">
+                    <span class="k">{{ $t("port", 2) }}</span><span class="mono">
                         <template v-if="row.portLinks.length">
                             <div v-for="link in row.portLinks" :key="link.text">
                                 <a v-if="link.url" :href="link.url" target="_blank" rel="noopener" class="port-link">{{ link.text }}</a><span v-else>{{ link.text }}</span>

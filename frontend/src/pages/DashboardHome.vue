@@ -12,20 +12,20 @@
                 <div class="tile">
                     <div class="tile-label">{{ $t("active") }}</div>
                     <div class="tile-value text-success">{{ activeNum }}</div>
-                    <div class="tile-sub">{{ $tc("stacksCount", activeNum) }}</div>
+                    <div class="tile-sub">{{ $t("stacksCount", activeNum) }}</div>
                 </div>
                 <div class="tile">
                     <div class="tile-label">{{ $t("exited") }}</div>
                     <div class="tile-value" :class="exitedNum > 0 ? 'text-danger' : ''">{{ exitedNum }}</div>
-                    <div class="tile-sub">{{ $tc("stacksCount", exitedNum) }}</div>
+                    <div class="tile-sub">{{ $t("stacksCount", exitedNum) }}</div>
                 </div>
                 <div class="tile">
                     <div class="tile-label">{{ $t("inactive") }}</div>
                     <div class="tile-value text-secondary">{{ inactiveNum }}</div>
-                    <div class="tile-sub">{{ $tc("stacksCount", inactiveNum) }}</div>
+                    <div class="tile-sub">{{ $t("stacksCount", inactiveNum) }}</div>
                 </div>
                 <div v-if="dfContainers" class="tile">
-                    <div class="tile-label">{{ $tc("container", 2) }}</div>
+                    <div class="tile-label">{{ $t("container", 2) }}</div>
                     <div class="tile-value">{{ dfContainers.Active }}<span class="tile-dim"> / {{ dfContainers.TotalCount }}</span></div>
                     <div class="tile-sub">{{ $t("runningTotal") }}</div>
                 </div>
@@ -47,7 +47,7 @@
                     <div class="tile-sub">{{ dockerSize(dfImages.Size) }}</div>
                 </div>
                 <div v-if="dfVolumes" class="tile">
-                    <div class="tile-label">{{ $tc("volume", 2) }}</div>
+                    <div class="tile-label">{{ $t("volume", 2) }}</div>
                     <div class="tile-value">{{ dfVolumes.TotalCount }}</div>
                     <div class="tile-sub">{{ dockerSize(dfVolumes.Size) }}</div>
                 </div>
@@ -73,7 +73,7 @@
                     <!-- Agent List -->
                     <div class="panel">
                         <div class="panel-head">
-                            <span class="panel-title">{{ $tc("dockgeAgent", 2) }}</span>
+                            <span class="panel-title">{{ $t("dockgeAgent", 2) }}</span>
                             <span class="badge bg-warning-subtle text-warning-emphasis state-badge">beta</span>
                             <button v-if="!showAgentForm" class="mini-btn ms-auto" @click="showAgentForm = true">{{ $t("addAgent") }}</button>
                         </div>

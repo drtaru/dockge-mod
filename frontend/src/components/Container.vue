@@ -55,7 +55,7 @@
                     <!-- Ports -->
                     <div class="field">
                         <div class="f-label">
-                            {{ $tc("port", 2) }}
+                            {{ $t("port", 2) }}
                             <button v-if="canAdd.ports" class="mini-btn add-btn" @click="$refs.portsInput?.addField()">+ {{ $t("add") }}</button>
                         </div>
                         <ArrayInput ref="portsInput" name="ports" :display-name="$t('port')" placeholder="HOST:CONTAINER" :compact="true" />
@@ -64,7 +64,7 @@
                     <!-- Volumes -->
                     <div class="field">
                         <div class="f-label">
-                            {{ $tc("volume", 2) }}
+                            {{ $t("volume", 2) }}
                             <button v-if="canAdd.volumes" class="mini-btn add-btn" @click="$refs.volumesInput?.addField()">+ {{ $t("add") }}</button>
                         </div>
                         <ArrayInput ref="volumesInput" name="volumes" :display-name="$t('volume')" placeholder="HOST:CONTAINER" :compact="true" />
@@ -73,7 +73,7 @@
                     <!-- Environment Variables -->
                     <div class="field">
                         <div class="f-label">
-                            {{ $tc("environmentVariable", 2) }}
+                            {{ $t("environmentVariable", 2) }}
                             <button v-if="canAdd.env" class="mini-btn add-btn" @click="$refs.envInput?.addField()">+ {{ $t("add") }}</button>
                         </div>
                         <ArrayInput ref="envInput" name="environment" :display-name="$t('environmentVariable')" placeholder="KEY=VALUE" :compact="true" />
@@ -82,7 +82,7 @@
                     <!-- Networks + Depends on -->
                     <div class="field">
                         <div class="f-label">
-                            {{ $tc("network", 2) }}
+                            {{ $t("network", 2) }}
                             <button v-if="canAdd.networks" class="mini-btn add-btn" @click="$refs.networksInput?.addField()">+ {{ $t("add") }}</button>
                         </div>
                         <div v-if="networkList.length === 0 && service.networks && service.networks.length > 0" class="text-warning small mb-1">
@@ -255,7 +255,7 @@ export default defineComponent({
             };
             // Only the count 1 is singular. $tc with 0 selects the singular
             // form in some rules, which gives "0 port".
-            const label = (key, n) => this.$tc(key, n === 1 ? 1 : 2).toLowerCase();
+            const label = (key, n) => this.$t(key, n === 1 ? 1 : 2).toLowerCase();
             const ports = len(this.service.ports);
             const volumes = len(this.service.volumes);
             const env = len(this.service.environment);

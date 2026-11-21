@@ -17,7 +17,7 @@
                         <span v-if="gitInfo" class="git-badge mono" :title="gitInfo.isDirty ? $t('gitDirtyMsg') : ''">
                             <font-awesome-icon icon="code-branch" class="me-1" />{{ gitInfo.branch }}<template v-if="gitInfo.isDirty"> &#9679;</template>
                         </span>
-                        <span v-if="!isEditMode && serviceCount > 0" class="panel-note d-none d-sm-inline">{{ serviceCount }} {{ $tc("container", serviceCount) }}</span>
+                        <span v-if="!isEditMode && serviceCount > 0" class="panel-note d-none d-sm-inline">{{ serviceCount }} {{ $t("container", serviceCount) }}</span>
                         <!-- URLs -->
                         <a v-for="(urlItem, index) in urls" :key="index" target="_blank" rel="noopener" :href="urlItem.url" class="url-link mono">{{ urlItem.display }}</a>
                     </template>
@@ -93,7 +93,7 @@
 
                     <!-- Containers (edit mode): editable cards -->
                     <div v-if="isEditMode" class="panel">
-                        <div class="panel-head"><span class="panel-title">{{ $tc("container", 2) }}</span></div>
+                        <div class="panel-head"><span class="panel-title">{{ $t("container", 2) }}</span></div>
                         <div class="panel-body">
                             <div class="input-group input-group-sm mb-3">
                                 <input
@@ -140,7 +140,7 @@
                     <!-- URLs -->
                     <div v-if="isEditMode" class="panel">
                         <div class="panel-head">
-                            <span class="panel-title">{{ $tc("url", 2) }}</span>
+                            <span class="panel-title">{{ $t("url", 2) }}</span>
                             <span class="panel-note">{{ $t("urlsNote") }}</span>
                         </div>
                         <div class="panel-body">
@@ -389,7 +389,7 @@
 
                     <!-- Networks -->
                     <div class="panel">
-                        <div class="panel-head"><span class="panel-title">{{ $tc("network", 2) }}</span></div>
+                        <div class="panel-head"><span class="panel-title">{{ $t("network", 2) }}</span></div>
                         <div class="panel-body">
                             <NetworkInput />
                         </div>

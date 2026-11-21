@@ -1,6 +1,6 @@
 ############################################
 # Docker CLI
-# The docker CLI and the compose and buildx plugins, as static binaries
+# The docker CLI and the buildx plugin, as static binaries
 # from Docker's official image. This avoids Docker's apt repository and
 # the curl, gnupg, and unzip packages that it needed.
 #
@@ -30,14 +30,15 @@ RUN apt-get update \
         dumb-init \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=docker_cli /usr/local/bin/docker /usr/local/bin/docker
-COPY --from=docker_cli /usr/local/libexec/docker/cli-plugins /usr/local/libexec/docker/cli-plugins
+COPY --from=docker_cli /usr/local/libexec/docker/cli-plugins/docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
 
 ############################################
 # Healthcheck Binary
 # Go compiles for the target architecture on the build platform, so
 # this stage does not run under emulation.
 ############################################
-FROM --platform=$BUILDPLATFORM golang:1.27.4-trixie@sha256:f18c3d73a184fb0582828510722e723b63a93f7188d11dd223d9be6f6880e65d AS build_healthcheck
+FROM --platform=$BUILDPLATFORM golang:1.27.4-trixie@sha256:f18c3d73a184fb0582828510722e723b63a93f7188d11dd223d9be6f6880e65d AS go_builder
+FROM go_builder AS build_healthcheck
 WORKDIR /app
 ARG TARGETOS
 ARG TARGETARCH
@@ -45,6 +46,23 @@ ARG TARGETVARIANT
 COPY ./extra/healthcheck.go ./extra/healthcheck.go
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
     go build -trimpath -ldflags="-s -w" -o ./extra/healthcheck ./extra/healthcheck.go
+
+# Use Docker's Compose release with patched dependencies until the CLI image
+# includes fixes for CVE-2026-116591 and CVE-2026-78661.
+FROM go_builder AS build_compose
+WORKDIR /src
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+ENV GOTOOLCHAIN=local
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+    compose_version=v5.7.1 \
+    && go mod download "github.com/docker/compose/v5@$compose_version" \
+    && cp -R "/go/pkg/mod/github.com/docker/compose/v5@$compose_version/." . \
+    && chmod u+w go.mod go.sum \
+    && go get github.com/klauspost/compress@v1.20.2 golang.org/x/net@v0.62.0 golang.org/x/crypto@v0.59.0 \
+    && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
+        go build -mod=mod -trimpath -ldflags="-s -w -X github.com/docker/compose/v5/internal.Version=$compose_version" -o /docker-compose ./cmd
 
 ############################################
 # Build
@@ -99,6 +117,7 @@ WORKDIR /app
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
         /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 COPY --chown=node:node --from=build_healthcheck /app/extra/healthcheck /app/extra/healthcheck
+COPY --from=build_compose /docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
 COPY --from=build /app/node_modules /app/node_modules
 # Only what the server needs at runtime. package.json comes from the build
 # stage, which holds the version of the image.

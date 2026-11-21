@@ -3,7 +3,7 @@
         <div>
             <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
                 <h1 class="page-title">{{ $t("resources") }}</h1>
-                <select v-if="$root.agentCount > 1" class="form-select w-auto" :aria-label="$tc('dockgeAgent', 1)" :value="endpoint" @change="changeEndpoint($event.target.value)">
+                <select v-if="$root.agentCount > 1" class="form-select w-auto" :aria-label="$t('dockgeAgent', 1)" :value="endpoint" @change="changeEndpoint($event.target.value)">
                     <option v-for="(agent, agentEndpoint) in $root.agentList" :key="agentEndpoint" :value="agentEndpoint">
                         {{ $root.endpointDisplayFunction(agentEndpoint) }}
                     </option>
