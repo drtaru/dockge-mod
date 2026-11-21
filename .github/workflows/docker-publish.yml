@@ -31,22 +31,27 @@ jobs:
 
       - name: Make the version and the tags
         id: meta
+        env:
+          DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -eu
+          : "${DOCKER_HUB_USERNAME:?Set the DOCKER_HUB_USERNAME repository variable}"
+          IMAGE="${DOCKER_HUB_USERNAME}/dockge-mod"
           BASE="$(node -p "require('./package.json').version")"
           # The build date, so the tags sort by release. A second release on
           # the same day gets a counter: 1.5.0-mod-2026-09-29-2.
           DATE="$(date -u +%Y-%m-%d)"
           VERSION="${BASE}-mod-${DATE}"
           N=2
-          while curl -fsS -o /dev/null "https://hub.docker.com/v2/repositories/ethanpil/dockge-mod/tags/${VERSION}"; do
+          while curl -fsS -o /dev/null "https://hub.docker.com/v2/repositories/${IMAGE}/tags/${VERSION}"; do
             VERSION="${BASE}-mod-${DATE}-${N}"
             N=$((N + 1))
           done
-          TAGS="ethanpil/dockge-mod:${VERSION}"
+          TAGS="${IMAGE}:${VERSION}"
           # Only the default branch moves the latest tag
-          if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
-            TAGS="${TAGS},ethanpil/dockge-mod:latest"
+          if [ "${GITHUB_REF}" = "refs/heads/${DEFAULT_BRANCH}" ]; then
+            TAGS="${TAGS},${IMAGE}:latest"
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
@@ -63,7 +68,7 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
-          username: ethanpil
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_KEY }}
 
       - name: Build and push
@@ -79,7 +84,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.title=dockge-mod
-            org.opencontainers.image.source=https://github.com/ethanpil/dockge-mod
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ steps.meta.outputs.version }}
           # Run APT even when the pinned base image is unchanged.
