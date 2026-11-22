@@ -84,7 +84,7 @@ RUN tar -xJf /tmp/git.tar.xz --strip-components=1 \
 # Go compiles for the target architecture on the build platform, so
 # this stage does not run under emulation.
 ############################################
-FROM --platform=$BUILDPLATFORM golang:1.27.4-trixie@sha256:f18c3d73a184fb0582828510722e723b63a93f7188d11dd223d9be6f6880e65d AS go_builder
+FROM --platform=$BUILDPLATFORM golang:1.27.4-alpine3.24@sha256:70bd7ddea8b6cbe5d6943cde279d6b67feb10cc924fb9100d1d8757c1575b280 AS go_builder
 ENV GOTOOLCHAIN=local
 FROM go_builder AS build_healthcheck
 WORKDIR /app
