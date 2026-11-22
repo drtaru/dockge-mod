@@ -2,8 +2,8 @@
   "@context": "https://openvex.dev/ns/v0.2.0",
   "@id": "https://github.com/drtaru/dockge-mod/blob/master/docker/openvex.json",
   "author": "dockge-mod",
-  "timestamp": "2026-11-21T00:00:00Z",
-  "version": 1,
+  "timestamp": "2026-11-22T00:00:00Z",
+  "version": 2,
   "statements": [
     {
       "vulnerability": { "name": "CVE-2026-41567" },
@@ -28,15 +28,6 @@
       "status": "not_affected",
       "justification": "vulnerable_code_not_present",
       "impact_statement": "The affected bind mount handling is in the Docker Engine daemon. This Buildx binary links only pkg/namesgenerator from the affected module, as checked in docker/Dockerfile."
-    },
-    {
-      "vulnerability": { "name": "CVE-2023-45853" },
-      "products": [
-        { "@id": "pkg:deb/debian/zlib1g@1.2.13.dfsg-1?arch=armhf&distro=debian-12.15&epoch=1" }
-      ],
-      "status": "not_affected",
-      "justification": "vulnerable_code_not_present",
-      "impact_statement": "Debian documents that Bookworm does not build MiniZip from the zlib source package. https://security-tracker.debian.org/tracker/CVE-2023-45853"
     }
   ]
 }

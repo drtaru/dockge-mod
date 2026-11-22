@@ -15,13 +15,7 @@ FROM docker:29.10.0-cli@sha256:34507eb5069d8be82c95dd3b6987d4250fd5fee49b82e2509
 #
 # git: stacks that are git checkouts (branch badge, Pull & Redeploy).
 ############################################
-# Node.js publishes Debian 13 images for amd64 and arm64. armv7 uses
-# Debian 12, with its security updates applied by the upgrade below.
-# BuildKit builds only the stage of the target platform.
-FROM node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450afcdbe70c1532db042b64 AS node-amd64
-FROM node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450afcdbe70c1532db042b64 AS node-arm64
-FROM node:22.23.5-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS node-arm
-FROM node-${TARGETARCH} AS base
+FROM node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450afcdbe70c1532db042b64 AS base
 # The publish workflow changes this file once per attempt to refresh APT.
 RUN --mount=type=bind,source=docker/apt-cache-key,target=/tmp/apt-cache-key \
     apt-get update \
@@ -90,9 +84,8 @@ FROM go_builder AS build_healthcheck
 WORKDIR /app
 ARG TARGETOS
 ARG TARGETARCH
-ARG TARGETVARIANT
 COPY ./extra/healthcheck.go ./extra/healthcheck.go
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -trimpath -ldflags="-s -w" -o ./extra/healthcheck ./extra/healthcheck.go
 
 # Use Docker's Compose release with patched dependencies until the CLI image
@@ -101,14 +94,13 @@ FROM go_builder AS build_compose
 WORKDIR /src
 ARG TARGETOS
 ARG TARGETARCH
-ARG TARGETVARIANT
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     compose_version=v5.7.1 \
     && go mod download "github.com/docker/compose/v5@$compose_version" \
     && cp -R "/go/pkg/mod/github.com/docker/compose/v5@$compose_version/." . \
     && chmod u+w go.mod go.sum \
     && go get github.com/klauspost/compress@v1.20.2 golang.org/x/net@v0.62.0 golang.org/x/crypto@v0.59.0 \
-    && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
+    && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
         go build -mod=mod -trimpath -ldflags="-s -w -X github.com/docker/compose/v5/internal.Version=$compose_version" -o /docker-compose ./cmd
 
 # Use the patched archive dependency until Docker's Buildx release includes it.
@@ -117,14 +109,13 @@ FROM go_builder AS build_buildx
 WORKDIR /src
 ARG TARGETOS
 ARG TARGETARCH
-ARG TARGETVARIANT
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     buildx_version=v0.39.1 \
     && go mod download "github.com/docker/buildx@$buildx_version" \
     && cp -R "/go/pkg/mod/github.com/docker/buildx@$buildx_version/." . \
     && chmod u+w go.mod go.sum \
     && go get github.com/moby/go-archive@v0.3.3 golang.org/x/crypto@v0.59.0 \
-    && export CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" GOARM="${TARGETVARIANT#v}" \
+    && export CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" \
     && go list -mod=mod -deps ./cmd/buildx > /tmp/buildx-packages \
     && test "$(grep '^github.com/docker/docker/' /tmp/buildx-packages)" = github.com/docker/docker/pkg/namesgenerator \
     && go build -mod=mod -trimpath -ldflags="-s -w -X github.com/docker/buildx/version.Version=$buildx_version" -o /docker-buildx ./cmd/buildx

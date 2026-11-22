@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Eac
 
 ## [Unreleased]
 
+### Removed
+
+- ARMv7 release images. New releases use Debian 13 on amd64 and arm64.
+
 ## [1.5.0-mod-2026-10-01] - 2026-10-01
 
 ### Changed
